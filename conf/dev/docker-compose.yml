@@ -1,0 +1,41 @@
+# =====================================================
+# MySQL MASTER - SLAVE chạy trên 1 máy (2 cổng khác nhau)
+# Mục đích: TEST / HỌC / DEMO cơ chế replication
+# =====================================================
+
+version: '3.9'
+
+services:
+  mysql-master:
+    image: mysql:8.0
+    container_name: mysql-master
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: appdb
+    ports:
+      - "3306:3306"   # MASTER PORT
+    volumes:
+      - ./master/conf/my.cnf:/etc/mysql/conf.d/master.cnf
+      - ./master/data:/var/lib/mysql
+      - ./master/init:/docker-entrypoint-initdb.d
+
+  mysql-slave:
+    image: mysql:8.0
+    container_name: mysql-slave
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+    ports:
+      - "3307:3306"   # SLAVE PORT
+    depends_on:
+      - mysql-master
+    volumes:
+      - ./slave/conf/my.cnf:/etc/mysql/conf.d/slave.cnf
+      - ./slave/data:/var/lib/mysql
+
+# =====================================================
+# Kết nối:
+# - MASTER : localhost:3306
+# - SLAVE  : localhost:3307
+# =====================================================
